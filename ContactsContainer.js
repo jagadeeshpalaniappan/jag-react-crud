@@ -95,7 +95,7 @@ class ContactsContainer extends Component {
     const displayContacts = searchText ? searchResults : contacts;
 
     return (
-      <>
+      <div className="app-m-h-70">
         <div class="flex mb-5">
           <Button
             text="Create"
@@ -125,7 +125,7 @@ class ContactsContainer extends Component {
             />
           ))}
         </div>
-      </>
+      </div>
     );
   }
 }
