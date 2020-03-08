@@ -1,7 +1,14 @@
 import React, { Component } from "react";
 import { ContactCard, ContactSearch } from "./Contact";
 
-import { getAll, getById, create, update, remove, search } from "./ContactsService";
+import {
+  getAll,
+  getById,
+  create,
+  update,
+  remove,
+  search
+} from "./ContactsService";
 
 /* ###################### ContactsContainer ###################### */
 
@@ -28,9 +35,12 @@ class ContactsContainer extends Component {
 
   handleDelete(targetContact) {
     console.log("handleDelete");
-    this.setState(state => {
-      return { ...state, contacts: remove(state.contacts, targetContact) };
-    });
+    this.setState(
+      state => {
+        return { ...state, contacts: remove(state.contacts, targetContact) };
+      },
+      () => this.handleSearch(this.state.searchText)
+    );
   }
 
   handleSearch(searchText) {

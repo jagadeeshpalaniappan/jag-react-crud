@@ -2,7 +2,7 @@
 
 import { getAll, getById, create, update, remove, search } from "./utils/CrudTemplateLocal";
 
-/* ###################### ContactsContainer:LocalData ###################### */
+/* ###################### ContactsService:LocalData ###################### */
 import DataGenerator from "./utils/DataGenerator";
 const mapContact = id => ({
   id,
@@ -16,6 +16,10 @@ const mapContact = id => ({
 const contacts = DataGenerator.generate(100, mapContact);
 
 const getAll = () => contacts;
+
+/* ###################### ContactsService:API ###################### */
+
+
 
 export { create, update, remove, search, getById, getAll };
 
