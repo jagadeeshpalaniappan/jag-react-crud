@@ -69,12 +69,12 @@ class ContactForm extends Component {
   handleSubmit(e) {
     console.log("handleSubmit", this.state.contact); // TODO: not working
     e.preventDefault();
-    this.props.onSave(this.state.contact);
+    this.props.onUpdate(this.state.contact);
     return false;
   }
 
   render() {
-    const { onSave, onCancel } = this.props;
+    const { onUpdate, onCancel } = this.props;
     const { contact } = this.state;
     const { id, name, email, mobile, notes, tags } = contact;
 
@@ -138,7 +138,7 @@ class ContactForm extends Component {
   }
 }
 
-const ContactCard = ({ contact, onSave, onDelete }) => {
+const ContactCard = ({ contact, onUpdate, onDelete }) => {
   const [isEditMode, setEditMode] = useState(false);
 
   const enableEditMode = () => {
@@ -152,7 +152,7 @@ const ContactCard = ({ contact, onSave, onDelete }) => {
 
   const handleSave = contact => {
     setEditMode(false);
-    onSave(contact);
+    onUpdate(contact);
   };
 
   const deleteContact = () => {
@@ -166,7 +166,7 @@ const ContactCard = ({ contact, onSave, onDelete }) => {
       {isEditMode && (
         <ContactForm
           contact={contact}
-          onSave={handleSave}
+          onUpdate={handleSave}
           onCancel={handleCancel}
         />
       )}
