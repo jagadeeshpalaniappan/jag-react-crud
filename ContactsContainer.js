@@ -5,9 +5,17 @@ import { MdAdd } from "react-icons/md";
 
 import ContactForm from "./ContactForm";
 
-import { getAll, getById, create, update, remove } from "./ContactsService";
-import { search } from "./utils/CrudTemplateLocal";
+// import { getAll, getById, create, update, remove } from "./ContactsService";
+import {
+  getAll,
+  getById,
+  search,
+  create,
+  update,
+  remove
+} from "./ContactsServiceLocal";
 
+// import { search } from "./utils/CrudTemplateLocal";
 
 /* ###################### ContactsContainer ###################### */
 
@@ -27,7 +35,9 @@ class ContactsContainer extends Component {
     this.handleSearch = this.handleSearch.bind(this);
 
     this.toggleCreateForm = this.toggleCreateForm.bind(this);
+  }
 
+  componentDidMount() {
     this.getAllContacts();
   }
 
@@ -67,7 +77,7 @@ class ContactsContainer extends Component {
     const [err] = await remove(targetContact);
     if (err) {
       console.error(err);
-    } else if(this.state.searchText) {
+    } else if (this.state.searchText) {
       await this.getAllContacts();
       this.handleSearch(this.state.searchText);
     } else {
@@ -75,10 +85,10 @@ class ContactsContainer extends Component {
     }
   }
 
-  handleSearch(searchText) {
+  async handleSearch(searchText) {
     console.log("handleSearch", searchText);
     if (searchText) {
-      const searchResults = search(this.state.contacts, searchText);
+      const [ err, searchResults] = await search(searchText);
       this.setState(state => ({
         ...state,
         searchText,

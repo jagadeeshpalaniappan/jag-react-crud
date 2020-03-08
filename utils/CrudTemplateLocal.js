@@ -9,6 +9,7 @@ const update = (collection, newEntity) => {
 };
 
 const remove = (collection, targetEntity) => {
+  console.log("remove", targetEntity);
   return collection.filter(entity => entity.id !== targetEntity.id);
 };
 
@@ -16,17 +17,15 @@ const getById = (collection, id) => {
   return collection.find(entity => entity.id === id);
 };
 
-const getAll = (collection) => {
-  return collection;
-};
-
+// TODO: search can be improved
 const search = (collection, searchText) => {
-  console.log(collection);
+  console.log("search:", collection);
   const searchTextLower = searchText.toLowerCase();
   return collection.filter(entity => {
     let isMatching = false;
     for (const [key, val] of Object.entries(entity)) {
-      if (val.toLowerCase().includes(searchTextLower)) {
+      const valStr = typeof val === "string" ? val : val.toString(2);
+      if (valStr.toLowerCase().includes(searchTextLower)) {
         isMatching = true;
         break;
       }
@@ -34,4 +33,5 @@ const search = (collection, searchText) => {
     return isMatching;
   });
 };
-export { create, update, remove, search, getAll, getById };
+
+export default { create, update, remove, search, getById };
