@@ -1,0 +1,14 @@
+{
+	"name": "jag-temp1",
+	"header": {
+
+	},
+	"settings": {
+		"dateRange": { "start": "", "end": "" },
+		"timeZone": "",
+		"dataResolution": "",
+		"dataSource": "",
+		"systemOfMeasure": "",
+		"dataQualityFilter": ""
+	}
+}
