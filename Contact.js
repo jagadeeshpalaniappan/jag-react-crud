@@ -3,16 +3,18 @@ import React, { Component, useState } from "react";
 import { MdEdit, MdDelete, MdDone } from "react-icons/md";
 
 import { Button, IconButton, Anchor } from "./components/Button";
-import { FormInput } from "./components/Form";
+import ContactForm from "./ContactForm";
 
 const Contact = ({ contact, editContact, deleteContact }) => {
-  const { name, mobile, email, notes } = contact;
+  const { firstName, lastName, mobile, email, notes } = contact;
 
   return (
     <div class="bg-white rounded shadow-md mb-6 overflow-hidden">
       <div className="px-6 py-4">
         <div class="flex">
-          <div className="flex-grow mb-2 text-teal-500 text-xl">{name}</div>
+          <div className="flex-grow mb-2 text-teal-500 text-xl">
+            {firstName} {lastName}
+          </div>
 
           <div class="flex-grow-0 text-gray-800 ml-2">
             <IconButton
@@ -44,100 +46,6 @@ const Contact = ({ contact, editContact, deleteContact }) => {
   );
 };
 
-class ContactForm extends Component {
-  constructor(props) {
-    super(props);
-
-    console.log("Contact: init", this.state);
-
-    this.state = {
-      contact: this.props.contact
-    };
-
-    this.onContactChange = this.onContactChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  onContactChange(key, val) {
-    console.log("onContactChange", key, val);
-    // this.setState({ contact: { ...this.state.contact, [key]: val } });
-    this.setState(state => ({
-      contact: { ...this.state.contact, [key]: val }
-    }));
-  }
-
-  handleSubmit(e) {
-    console.log("handleSubmit", this.state.contact); // TODO: not working
-    e.preventDefault();
-    this.props.onUpdate(this.state.contact);
-    return false;
-  }
-
-  render() {
-    const { onUpdate, onCancel } = this.props;
-    const { contact } = this.state;
-    const { id, name, email, mobile, notes, tags } = contact;
-
-    console.log("Contact: render", this.state);
-
-    return (
-      <div class="bg-white rounded shadow-md mb-6 overflow-hidden">
-        <div className="px-6 py-4">
-          <form id={`form-${id}`} onSubmit={this.handleSubmit} noValidate>
-            <FormInput
-              id={`name-${id}`}
-              label="Name"
-              text={name}
-              onTextChange={val => this.onContactChange("name", val)}
-            />
-
-            <div class="flex flex-wrap -mx-3 mb-6">
-              <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <FormInput
-                  id={`email-${id}`}
-                  label="Email"
-                  text={email}
-                  onTextChange={val => this.onContactChange("email", val)}
-                />
-              </div>
-              <div class="w-full md:w-1/2 px-3">
-                <FormInput
-                  id={`mobile-${id}`}
-                  label="Mobile"
-                  text={mobile}
-                  onTextChange={val => this.onContactChange("mobile", val)}
-                />
-              </div>
-            </div>
-
-            <FormInput
-              id={`notes-${id}`}
-              label="Notes"
-              text={notes}
-              onTextChange={val => this.onContactChange("notes", val)}
-            />
-
-            <div className="flex mt-5">
-              <Button
-                text="Cancel"
-                onClick={onCancel}
-                color="default"
-                className="ml-auto"
-              />
-              <Button
-                text="Save"
-                type="submit"
-                color="primary"
-                icon={<MdDone />}
-              />
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
-}
-
 const ContactCard = ({ contact, onUpdate, onDelete }) => {
   const [isEditMode, setEditMode] = useState(false);
 
@@ -150,7 +58,7 @@ const ContactCard = ({ contact, onUpdate, onDelete }) => {
     setEditMode(false);
   };
 
-  const handleSave = contact => {
+  const handleUpdate = contact => {
     setEditMode(false);
     onUpdate(contact);
   };
@@ -166,7 +74,7 @@ const ContactCard = ({ contact, onUpdate, onDelete }) => {
       {isEditMode && (
         <ContactForm
           contact={contact}
-          onUpdate={handleSave}
+          onSave={handleUpdate}
           onCancel={handleCancel}
         />
       )}
@@ -181,21 +89,21 @@ const ContactCard = ({ contact, onUpdate, onDelete }) => {
   );
 };
 
-const ContactSearch = ({onSearch}) => {
-  const [searchText, setSearchText] = useState('');
-  const handleSearch = (e) => {
+const ContactSearch = ({ onSearch }) => {
+  const [searchText, setSearchText] = useState("");
+  const handleSearch = e => {
     console.log(e);
     setSearchText(e.target.value);
     onSearch(e.target.value);
-  }
+  };
   return (
-      <input
-        className="bg-gray-200 text-teal-500 focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
-        type="email"
-        placeholder="Search"
-        value={searchText}
-        onChange={handleSearch}
-      />
+    <input
+      className="bg-gray-200 text-teal-500 focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
+      type="email"
+      placeholder="Search"
+      value={searchText}
+      onChange={handleSearch}
+    />
   );
 };
-export { ContactCard, ContactSearch};
+export { ContactCard, ContactSearch };

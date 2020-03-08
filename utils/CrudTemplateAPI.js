@@ -1,3 +1,6 @@
+import { hp, hf, wait } from "./PromiseUtil";
+
+
 const create = (collection, newEntity) => {
   return collection.push([newEntity, ...collection]);
 };
@@ -12,26 +15,23 @@ const remove = (collection, targetEntity) => {
   return collection.filter(entity => entity.id !== targetEntity.id);
 };
 
+const search = (collection, searchText) => {
+  return collection.filter(
+    entity =>
+      entity.name.includes(searchText) ||
+      entity.email.startsWith(searchText) ||
+      entity.mobile.startsWith(searchText) ||
+      entity.notes.startsWith(searchText)
+  );
+};
+
 const getById = (collection, id) => {
   return collection.find(entity => entity.id === id);
 };
 
-const getAll = (collection) => {
+const getAll = collection => {
   return collection;
 };
 
-const search = (collection, searchText) => {
-  console.log(collection);
-  const searchTextLower = searchText.toLowerCase();
-  return collection.filter(entity => {
-    let isMatching = false;
-    for (const [key, val] of Object.entries(entity)) {
-      if (val.toLowerCase().includes(searchTextLower)) {
-        isMatching = true;
-        break;
-      }
-    }
-    return isMatching;
-  });
-};
+
 export { create, update, remove, search, getAll, getById };
