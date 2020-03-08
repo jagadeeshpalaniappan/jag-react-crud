@@ -28,7 +28,7 @@ class ContactsContainer extends Component {
 
     this.toggleCreateForm = this.toggleCreateForm.bind(this);
 
-    // this.getAllContacts();
+    this.getAllContacts();
   }
 
   async getAllContacts() {
@@ -67,6 +67,9 @@ class ContactsContainer extends Component {
     const [err] = await remove(targetContact);
     if (err) {
       console.error(err);
+    } else if(this.state.searchText) {
+      await this.getAllContacts();
+      this.handleSearch(this.state.searchText);
     } else {
       this.getAllContacts();
     }

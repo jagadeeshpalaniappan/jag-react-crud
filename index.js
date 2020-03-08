@@ -12,10 +12,8 @@ const Footer = () => (
 );
 
 const App = () => (
-  <div class="bg-gray-200 px-6 py-10">
-    <div class="w-full">
-      <ContactsContainer />
-    </div>
+  <div class="w-full px-6 py-10">
+    <ContactsContainer />
     <Footer />
   </div>
 );
