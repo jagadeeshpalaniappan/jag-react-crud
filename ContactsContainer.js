@@ -175,13 +175,7 @@ class ContactsContainer extends Component {
     this.cancelPrevTx();
 
     // SET-STATE: isLoading:true
-    await this.setStateAsync({
-      ...this.state,
-      isLoading: true,
-      pagination: {
-        ...this.state.pagination
-      }
-    });
+    await this.setStateAsync({ isLoading: true });
 
     // QUERY:
     const query = this.getQuery();
@@ -210,9 +204,9 @@ class ContactsContainer extends Component {
         `loadMoreContacts: ${contactsResp.pageNo}: allSearchResults: `,
         this.state.searchCriteria.searchResults
       );
-
     } else {
       console.log(`RESP:err`, err);
+      this.setStateAsync({ isLoading: false });
     }
   }
 
