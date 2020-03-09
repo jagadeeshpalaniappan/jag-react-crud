@@ -5,7 +5,7 @@ const contacts = console.log(contacts);
 
 const generateIds = (max) => {
   var randomIds = new Set();
-  while (randomIds.size < MAX_CONTACTS) {
+  while (randomIds.size < max) {
     const randomId = Math.floor(Math.random() * 1000) + 1;
     randomIds.add(randomId);
   }

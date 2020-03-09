@@ -28,4 +28,14 @@ async function hf(promise) {
   }
 }
 
-export { hp, hf, wait };
+// setStateAsync
+function setStateAsync(myObjOrFn) {
+  return new Promise(resolve =>
+    this.setState(myObjOrFn, () => {
+      console.log("done", this.state);
+      resolve();
+    })
+  );
+}
+
+export { hp, hf, wait, setStateAsync };

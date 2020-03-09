@@ -1,9 +1,13 @@
 import React, { Component } from "react";
+import debounce from "lodash.debounce";
+
 import { ContactCard, ContactSearch } from "./Contact";
 import { Button } from "./components/Button";
 import { MdAdd } from "react-icons/md";
 
 import ContactForm from "./ContactForm";
+
+import { setStateAsync } from "./utils/PromiseUtil";
 
 // import { getAll, getById, create, update, remove } from "./ContactsService";
 import {
@@ -17,6 +21,20 @@ import {
 
 // import { search } from "./utils/CrudTemplateLocal";
 
+const infiniteScroll = cb => {
+  // Binds our scroll event handler
+  window.onscroll = debounce(() => {
+    // Checks that the page has scrolled to the bottom
+    const { scrollTop, offsetHeight } = document.documentElement;
+    const { innerHeight } = window;
+
+    console.log("onscroll:", { innerHeight, scrollTop, offsetHeight });
+    if (window.innerHeight + scrollTop === offsetHeight) {
+      cb();
+    }
+  }, 100);
+};
+
 /* ###################### ContactsContainer ###################### */
 
 class ContactsContainer extends Component {
@@ -26,7 +44,13 @@ class ContactsContainer extends Component {
       contacts: [],
       searchText: "",
       searchResults: [],
-      showCreateForm: false
+      showCreateForm: false,
+      pagination: {
+        lastPageNo: 0,
+        pageSize: 10,
+        reachedMax: false,
+        isLoading: false
+      }
     };
 
     this.handleCreate = this.handleCreate.bind(this);
@@ -35,16 +59,65 @@ class ContactsContainer extends Component {
     this.handleSearch = this.handleSearch.bind(this);
 
     this.toggleCreateForm = this.toggleCreateForm.bind(this);
+    this.setStateAsync = setStateAsync.bind(this);
   }
 
   componentDidMount() {
     this.getAllContacts();
+    this.registerInifinteScroll();
+  }
+
+  async loadMoreContacts() {
+    // mark: isLoading
+    await this.setStateAsync({
+      ...this.state,
+      pagination: {
+        ...this.state.pagination,
+        isLoading: true
+      }
+    });
+
+    const { lastPageNo, pageSize } = this.state.pagination;
+
+    const nextPageNo = lastPageNo + 1;
+    const [err, contactsResp] = await getAll({ pageNo: nextPageNo, pageSize });
+    const { data, meta } = contactsResp;
+    const { totalRecords } = meta;
+    const reachedMax = this.state.contacts.length === totalRecords;
+
+    await this.setStateAsync({
+      ...this.state,
+      contacts: [...this.state.contacts, ...data],
+      pagination: {
+        ...this.state.pagination,
+        lastPageNo: nextPageNo,
+        isLoading: false,
+        reachedMax
+      }
+    });
+    console.log(`loadMoreContacts: ${nextPageNo}: newData: `, data);
+    console.log(
+      `loadMoreContacts: ${nextPageNo}: allData: `,
+      this.state.contacts
+    );
   }
 
   async getAllContacts() {
-    const [err, contacts] = await getAll();
-    console.log(contacts);
-    this.setState({ contacts });
+    await this.loadMoreContacts();
+    // await this.loadMoreContacts();
+    // await this.loadMoreContacts();
+    // await this.loadMoreContacts();
+    // await this.loadMoreContacts();
+  }
+
+  registerInifinteScroll() {
+    infiniteScroll(() => {
+      console.log("infiniteScroll:");
+      const { isLoading, reachedMax } = this.state.pagination;
+      if (!isLoading && !reachedMax) {
+        this.loadMoreContacts();
+      }
+    });
   }
 
   async handleCreate(newContact) {
@@ -88,7 +161,7 @@ class ContactsContainer extends Component {
   async handleSearch(searchText) {
     console.log("handleSearch", searchText);
     if (searchText) {
-      const [ err, searchResults] = await search(searchText);
+      const [err, searchResults] = await search(searchText);
       this.setState(state => ({
         ...state,
         searchText,
@@ -100,9 +173,15 @@ class ContactsContainer extends Component {
   }
 
   render() {
-    const { contacts, searchText, searchResults, showCreateForm } = this.state;
-
-    const displayContacts = searchText ? searchResults : contacts;
+    const {
+      contacts,
+      searchText,
+      searchResults,
+      showCreateForm,
+      pagination
+    } = this.state;
+    const displayContacts = searchText ? searchResults : contacts; // if:searchText available, showOnly searchResults
+    const { isLoading } = pagination;
 
     return (
       <div className="app-m-h-70">
@@ -135,6 +214,8 @@ class ContactsContainer extends Component {
             />
           ))}
         </div>
+
+        {isLoading && <p className="text-center text-gray-500"> Loading... </p>}
       </div>
     );
   }

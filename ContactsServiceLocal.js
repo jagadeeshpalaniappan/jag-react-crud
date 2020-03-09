@@ -26,9 +26,30 @@ const updateLocalCollection = updatedCollection => {
 };
 
 // GET:
-const getAll = async () => hp(contacts);
-const getById = async (...args) => hp(crudTemplateLocal.getById(contacts, ...args));
-const search = async (...args) => hp(crudTemplateLocal.search(contacts, ...args));
+// const getAll = async () => hp(contacts);
+// getAllWithPagination
+const getAll = async query => {
+  const pageNo = (query && query.pageNo) || 1;
+  const pageSize = (query && query.pageSize) || 10;
+
+  const startIdx = (pageNo - 1) * pageSize;
+  const endIdx = startIdx + pageSize;
+
+  const pagedContacts = contacts.slice(startIdx, endIdx);
+  const contactsResp = {
+    meta: { totalRecords: contacts.length, pageNo, pageSize },
+    data: pagedContacts
+  };
+
+  await wait(10000);
+
+  return [null, contactsResp];
+};
+
+const getById = async (...args) =>
+  hp(crudTemplateLocal.getById(contacts, ...args));
+const search = async (...args) =>
+  hp(crudTemplateLocal.search(contacts, ...args));
 
 // MODIFY:
 const create = async (...args) =>
