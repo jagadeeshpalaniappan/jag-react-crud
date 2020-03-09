@@ -32,7 +32,7 @@ async function hf(promise) {
 function setStateAsync(myObjOrFn) {
   return new Promise(resolve =>
     this.setState(myObjOrFn, () => {
-      console.log("done", this.state);
+      console.log("setStateAsync: done: ", this.state);
       resolve();
     })
   );

@@ -10,7 +10,7 @@ const mapContact = id => ({
   firstName: `Person - ${id}`,
   lastName: `C${id}al`,
   email: `user${id}@gmail.com`,
-  mobile: `+1 ${id}-456-7890`,
+  mobile: `+1 ${id}`,
   notes:
     "Lorem ipsum dolor sit amet, consectetur elit. Voluptatibus quia, nulla!",
   tags: ["eat", "code", "sleep"]
@@ -26,16 +26,42 @@ const updateLocalCollection = updatedCollection => {
 };
 
 // GET:
+
+const getById = async (...args) =>
+  hp(crudTemplateLocal.getById(contacts, ...args));
+const search = async (...args) =>
+  hp(crudTemplateLocal.search(contacts, ...args));
+
+const getContantsHelper = ({ searchText }) => {
+
+  console.log(`getContantsHelper:contacts: ${searchText}`, contacts);
+
+  let searchResults = contacts;
+  if (searchText) {
+    searchResults = crudTemplateLocal.search(contacts, searchText);
+  }
+
+  console.log('getContantsHelper:searchResults:', searchResults);
+  return searchResults;
+};
+
 // const getAll = async () => hp(contacts);
 // getAllWithPagination
 const getAll = async query => {
+  const { searchText, pagination } = query;
   const pageNo = (query && query.pageNo) || 1;
   const pageSize = (query && query.pageSize) || 10;
 
   const startIdx = (pageNo - 1) * pageSize;
   const endIdx = startIdx + pageSize;
 
+
+  const contacts = getContantsHelper({ searchText });
+
+  console.log('getAll:contacts:', {startIdx, endIdx});
   const pagedContacts = contacts.slice(startIdx, endIdx);
+  console.log('getAll:pagedContacts:', pagedContacts);
+
   const contactsResp = {
     meta: { totalRecords: contacts.length, pageNo, pageSize },
     data: pagedContacts
@@ -45,11 +71,6 @@ const getAll = async query => {
 
   return [null, contactsResp];
 };
-
-const getById = async (...args) =>
-  hp(crudTemplateLocal.getById(contacts, ...args));
-const search = async (...args) =>
-  hp(crudTemplateLocal.search(contacts, ...args));
 
 // MODIFY:
 const create = async (...args) =>

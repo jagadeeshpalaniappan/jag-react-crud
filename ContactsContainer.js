@@ -42,14 +42,22 @@ class ContactsContainer extends Component {
     super(props);
     this.state = {
       contacts: [],
-      searchText: "",
-      searchResults: [],
       showCreateForm: false,
       pagination: {
         lastPageNo: 0,
         pageSize: 10,
         reachedMax: false,
         isLoading: false
+      },
+      searchCriteria: {
+        searchText: "",
+        searchResults: [],
+        pagination: {
+          lastPageNo: 0,
+          pageSize: 10,
+          reachedMax: false,
+          isLoading: false
+        }
       }
     };
 
@@ -68,6 +76,8 @@ class ContactsContainer extends Component {
   }
 
   async loadMoreContacts() {
+    console.log(`loadMoreContacts: start`);
+
     // mark: isLoading
     await this.setStateAsync({
       ...this.state,
@@ -77,24 +87,64 @@ class ContactsContainer extends Component {
       }
     });
 
-    const { lastPageNo, pageSize } = this.state.pagination;
+    const { pagination, searchCriteria } = this.state;
+    const { searchText } = searchCriteria;
 
-    const nextPageNo = lastPageNo + 1;
-    const [err, contactsResp] = await getAll({ pageNo: nextPageNo, pageSize });
+    // QUERY:
+    const query = {};
+
+    if (searchText) {
+      query.searchText = searchText;
+
+      // SEARCH-PAGINATION:
+      const { lastPageNo, pageSize } = searchCriteria.pagination;
+      const nextPageNo = lastPageNo + 1;
+      query.pagination = { pageNo: nextPageNo, pageSize };
+    } else {
+      // PAGINATION:
+      const { lastPageNo, pageSize } = pagination;
+      const nextPageNo = lastPageNo + 1;
+      query.pagination = { pageNo: nextPageNo, pageSize };
+    }
+
+    console.log(`QUERY: `, query);
+    const [err, contactsResp] = await getAll(query);
+    console.log(`RESP: `, contactsResp);
+
     const { data, meta } = contactsResp;
     const { totalRecords } = meta;
     const reachedMax = this.state.contacts.length === totalRecords;
 
-    await this.setStateAsync({
-      ...this.state,
-      contacts: [...this.state.contacts, ...data],
+    const newState = {
       pagination: {
         ...this.state.pagination,
         lastPageNo: nextPageNo,
         isLoading: false,
         reachedMax
       }
-    });
+    };
+
+    if (searchText) {
+      console.log(`RESP:searchText `, this.state.searchResults, data);
+      const { searchCriteria } = this.state;
+
+      const searchResults =
+        searchText === searchCriteria.searchText
+          ? [...searchCriteria.searchResults, ...data]
+          : [...data];
+
+      newState.searchCriteria = { ...searchCriteria, searchResults };
+
+      console.log(
+        `loadMoreContacts: ${searchText} :${searchText ===
+          this.state.searchCriteria.searchText}: newState.searchResults: `,
+        newState.searchCriteria.searchResults
+      );
+    } else {
+      newState.contacts = [...this.state.contacts, ...data];
+    }
+
+    await this.setStateAsync({ ...this.state, ...newState });
     console.log(`loadMoreContacts: ${nextPageNo}: newData: `, data);
     console.log(
       `loadMoreContacts: ${nextPageNo}: allData: `,
@@ -150,36 +200,41 @@ class ContactsContainer extends Component {
     const [err] = await remove(targetContact);
     if (err) {
       console.error(err);
-    } else if (this.state.searchText) {
+    } else if (this.state.searchCriteria.searchText) {
       await this.getAllContacts();
-      this.handleSearch(this.state.searchText);
+      this.handleSearch(this.state.searchCriteria.searchText);
     } else {
       this.getAllContacts();
     }
   }
 
-  async handleSearch(searchText) {
+  async handleSearchLocal(searchText) {
     console.log("handleSearch", searchText);
     if (searchText) {
       const [err, searchResults] = await search(searchText);
-      this.setState(state => ({
-        ...state,
+      const searchCriteria = {
+        ...this.state.searchCriteria,
         searchText,
         searchResults
-      }));
+      };
+      this.setState({ ...this.state, searchCriteria });
     } else {
-      this.setState({ searchText });
+      const searchCriteria = { ...this.state.searchCriteria, searchText };
+      this.setState({ ...this.state, searchCriteria });
     }
   }
 
+  async handleSearch(searchText) {
+    console.log("handleSearch", searchText);
+    const searchCriteria = { ...this.state.searchCriteria, searchText };
+    await this.setStateAsync({ ...this.state, searchCriteria });
+    this.loadMoreContacts();
+  }
+
   render() {
-    const {
-      contacts,
-      searchText,
-      searchResults,
-      showCreateForm,
-      pagination
-    } = this.state;
+    const { contacts, searchCriteria, showCreateForm, pagination } = this.state;
+
+    const { searchText, searchResults } = searchCriteria;
     const displayContacts = searchText ? searchResults : contacts; // if:searchText available, showOnly searchResults
     const { isLoading } = pagination;
 
