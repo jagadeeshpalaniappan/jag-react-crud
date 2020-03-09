@@ -46,6 +46,7 @@ const getContantsHelper = ({ searchText }) => {
 // const getAll = async () => hp(contacts);
 // getAllWithPagination
 const getAll = async query => {
+
   const { searchText, pagination } = query;
   const pageNo = (pagination && pagination.pageNo) || 1;
   const pageSize = (pagination && pagination.pageSize) || 10;
@@ -69,7 +70,7 @@ const getAll = async query => {
 
   await wait(5000);
 
-  return [null, contactsResp];
+  return contactsResp;
 };
 
 // MODIFY:

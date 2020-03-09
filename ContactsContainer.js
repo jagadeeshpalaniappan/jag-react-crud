@@ -7,7 +7,7 @@ import { MdAdd } from "react-icons/md";
 
 import ContactForm from "./ContactForm";
 
-import { cp, setStateAsync } from "./utils/PromiseUtil";
+import { hp, cp, setStateAsync } from "./utils/PromiseUtil";
 
 // import { getAll, getById, create, update, remove } from "./ContactsService";
 import {
@@ -74,14 +74,14 @@ class ContactsContainer extends Component {
     this.registerInifinteScroll();
   }
 
-  cancelAllTx() {
-    console.log(`cancelAllTx: start`);
+  cancelPrevTx() {
+    console.log(`cancelPrevTx: start`);
     for (const tx of this.tx) {
-      console.log(`cancelAllTx: tx`, tx);
+      console.log(`cancelPrevTx: tx`, tx);
       tx.cancel();
     }
     this.tx = [];
-    console.log(`cancelAllTx: done`);
+    console.log(`cancelPrevTx: done`);
   }
 
   getPagination() {
@@ -172,7 +172,7 @@ class ContactsContainer extends Component {
 
   async loadMoreContacts() {
     console.log(`loadMoreContacts: start`);
-    this.cancelAllTx();
+    this.cancelPrevTx();
 
     // SET-STATE: isLoading:true
     await this.setStateAsync({
@@ -190,8 +190,7 @@ class ContactsContainer extends Component {
 
     // API:
     this.tx.push(prObj);
-    const [err, contactsResp] = await prObj.promise;
-    this.tx.pop();
+    const [err, contactsResp] = await hp(prObj.promise);
     if (!err) {
       // RESP:
       console.log(`RESP:success`, contactsResp);
@@ -211,6 +210,7 @@ class ContactsContainer extends Component {
         `loadMoreContacts: ${contactsResp.pageNo}: allSearchResults: `,
         this.state.searchCriteria.searchResults
       );
+
     } else {
       console.log(`RESP:err`, err);
     }

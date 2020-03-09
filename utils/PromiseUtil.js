@@ -45,6 +45,7 @@ function cp(targetPromise) {
     console.log("cp:start");
     obj.cancel = () => {
       reject({ isCanceled: true });
+      console.log("cp:canceled");
     };
     targetPromise.then(resolve).catch(reject);
   });
