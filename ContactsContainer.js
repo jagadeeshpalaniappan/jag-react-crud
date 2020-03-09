@@ -7,7 +7,7 @@ import { MdAdd } from "react-icons/md";
 
 import ContactForm from "./ContactForm";
 
-import { setStateAsync } from "./utils/PromiseUtil";
+import { cp, setStateAsync } from "./utils/PromiseUtil";
 
 // import { getAll, getById, create, update, remove } from "./ContactsService";
 import {
@@ -28,7 +28,7 @@ const infiniteScroll = cb => {
     const { scrollTop, offsetHeight } = document.documentElement;
     const { innerHeight } = window;
 
-    console.log("onscroll:", { innerHeight, scrollTop, offsetHeight });
+    // console.log("onscroll:", { innerHeight, scrollTop, offsetHeight });
     if (window.innerHeight + scrollTop === offsetHeight) {
       cb();
     }
@@ -58,6 +58,8 @@ class ContactsContainer extends Component {
       isLoading: false
     };
 
+    this.tx = [];
+
     this.handleCreate = this.handleCreate.bind(this);
     this.handleUpdate = this.handleUpdate.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
@@ -70,6 +72,16 @@ class ContactsContainer extends Component {
   componentDidMount() {
     this.getAllContacts();
     this.registerInifinteScroll();
+  }
+
+  cancelAllTx() {
+    console.log(`cancelAllTx: start`);
+    for (const tx of this.tx) {
+      console.log(`cancelAllTx: tx`, tx);
+      tx.cancel();
+    }
+    this.tx = [];
+    console.log(`cancelAllTx: done`);
   }
 
   getPagination() {
@@ -160,8 +172,9 @@ class ContactsContainer extends Component {
 
   async loadMoreContacts() {
     console.log(`loadMoreContacts: start`);
+    this.cancelAllTx();
 
-    // mark: isLoading
+    // SET-STATE: isLoading:true
     await this.setStateAsync({
       ...this.state,
       isLoading: true,
@@ -173,23 +186,34 @@ class ContactsContainer extends Component {
     // QUERY:
     const query = this.getQuery();
     console.log(`QUERY: `, query);
-    const [err, contactsResp] = await getAll(query);
-    console.log(`RESP: `, contactsResp);
-    const newState = this.getNewState(contactsResp);
+    const prObj = cp(getAll(query));
 
-    await this.setStateAsync({ ...this.state, ...newState });
-    console.log(
-      `loadMoreContacts: ${contactsResp.pageNo}: newData: `,
-      contactsResp.data
-    );
-    console.log(
-      `loadMoreContacts: ${contactsResp.pageNo}: allContacts: `,
-      this.state.contacts
-    );
-    console.log(
-      `loadMoreContacts: ${contactsResp.pageNo}: allSearchResults: `,
-      this.state.searchCriteria.searchResults
-    );
+    // API:
+    this.tx.push(prObj);
+    const [err, contactsResp] = await prObj.promise;
+    this.tx.pop();
+    if (!err) {
+      // RESP:
+      console.log(`RESP:success`, contactsResp);
+      const newState = this.getNewState(contactsResp);
+
+      // SET-STATE: resp
+      await this.setStateAsync({ ...this.state, ...newState });
+      console.log(
+        `loadMoreContacts: ${contactsResp.pageNo}: newData: `,
+        contactsResp.data
+      );
+      console.log(
+        `loadMoreContacts: ${contactsResp.pageNo}: allContacts: `,
+        this.state.contacts
+      );
+      console.log(
+        `loadMoreContacts: ${contactsResp.pageNo}: allSearchResults: `,
+        this.state.searchCriteria.searchResults
+      );
+    } else {
+      console.log(`RESP:err`, err);
+    }
   }
 
   async getAllContacts() {

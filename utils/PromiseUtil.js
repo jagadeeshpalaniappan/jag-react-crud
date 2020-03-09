@@ -38,4 +38,17 @@ function setStateAsync(myObjOrFn) {
   );
 }
 
-export { hp, hf, wait, setStateAsync };
+// cancelablePromise
+function cp(targetPromise) {
+  const obj = {};
+  obj.promise = new Promise((resolve, reject) => {
+    console.log("cp:start");
+    obj.cancel = () => {
+      reject({ isCanceled: true });
+    };
+    targetPromise.then(resolve).catch(reject);
+  });
+  return obj;
+}
+
+export { hp, hf, cp, wait, setStateAsync };
