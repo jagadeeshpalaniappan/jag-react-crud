@@ -92,7 +92,6 @@ const ContactCard = ({ contact, onUpdate, onDelete }) => {
 const ContactSearch = ({ onSearch }) => {
   const [searchText, setSearchText] = useState("");
   const handleSearch = e => {
-    console.log(e);
     setSearchText(e.target.value);
     onSearch(e.target.value);
   };
