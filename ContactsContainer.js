@@ -37,28 +37,25 @@ const infiniteScroll = cb => {
 
 /* ###################### ContactsContainer ###################### */
 
+const DEFAULT_PAGINATON = {
+  lastPageNo: 0,
+  pageSize: 10,
+  hasMoreData: true
+};
+
 class ContactsContainer extends Component {
   constructor(props) {
     super(props);
     this.state = {
       contacts: [],
       showCreateForm: false,
-      pagination: {
-        lastPageNo: 0,
-        pageSize: 10,
-        reachedMax: false,
-        isLoading: false
-      },
+      pagination: { ...DEFAULT_PAGINATON },
       searchCriteria: {
         searchText: "",
         searchResults: [],
-        pagination: {
-          lastPageNo: 0,
-          pageSize: 10,
-          reachedMax: false,
-          isLoading: false
-        }
-      }
+        pagination: { ...DEFAULT_PAGINATON }
+      },
+      isLoading: false
     };
 
     this.handleCreate = this.handleCreate.bind(this);
@@ -75,65 +72,70 @@ class ContactsContainer extends Component {
     this.registerInifinteScroll();
   }
 
-  async loadMoreContacts() {
-    console.log(`loadMoreContacts: start`);
-
-    // mark: isLoading
-    await this.setStateAsync({
-      ...this.state,
-      pagination: {
-        ...this.state.pagination,
-        isLoading: true
-      }
-    });
-
-    const { pagination, searchCriteria } = this.state;
-    const { searchText } = searchCriteria;
-
-    // QUERY:
-    const query = {};
-
-    if (searchText) {
-      query.searchText = searchText;
-
+  getPagination() {
+    const newPagination = {};
+    if (this.state.searchCriteria.searchText) {
       // SEARCH-PAGINATION:
-      const { lastPageNo, pageSize } = searchCriteria.pagination;
-      const nextPageNo = lastPageNo + 1;
-      query.pagination = { pageNo: nextPageNo, pageSize };
+      newPagination = this.state.searchCriteria.pagination;
     } else {
       // PAGINATION:
-      const { lastPageNo, pageSize } = pagination;
-      const nextPageNo = lastPageNo + 1;
-      query.pagination = { pageNo: nextPageNo, pageSize };
+      newPagination = this.state.pagination;
+    }
+    return newPagination;
+  }
+
+  getQuery() {
+    const query = {};
+
+    // SEARCH-TEXT:
+    if (this.state.searchCriteria.searchText) {
+      query.searchText = this.state.searchCriteria.searchText;
     }
 
-    console.log(`QUERY: `, query);
-    const [err, contactsResp] = await getAll(query);
-    console.log(`RESP: `, contactsResp);
-
-    const { data, meta } = contactsResp;
-    const { totalRecords } = meta;
-    const reachedMax = this.state.contacts.length === totalRecords;
-
-    const newState = {
-      pagination: {
-        ...this.state.pagination,
-        lastPageNo: nextPageNo,
-        isLoading: false,
-        reachedMax
-      }
+    // PAGINATION:
+    const pagination = this.getPagination();
+    query.pagination = {
+      pageNo: pagination.lastPageNo + 1,
+      pageSize: pagination.pageSize
     };
 
+    return query;
+  }
+
+  getNewState(contactsResp) {
+    console.log("this.state", this.state);
+
+    const newState = {};
+
+    const { data, meta } = contactsResp;
+    const { pageNo, totalRecords } = meta;
+
+    const { searchCriteria } = this.state;
+    const { searchText } = searchCriteria;
+
     if (searchText) {
-      console.log(`RESP:searchText `, this.state.searchResults, data);
-      const { searchCriteria } = this.state;
+      console.log(`RESP:searchText `, searchCriteria.searchResults, data);
 
-      const searchResults =
-        searchText === searchCriteria.searchText
-          ? [...searchCriteria.searchResults, ...data]
-          : [...data];
+      // const searchResults =
+      //   searchText === searchCriteria.searchText
+      //     ? [...searchCriteria.searchResults, ...data]
+      //     : [...data];
 
-      newState.searchCriteria = { ...searchCriteria, searchResults };
+      const searchResults = [...searchCriteria.searchResults, ...data];
+
+      const hasMoreData = searchResults.length < totalRecords;
+
+      const pagination = {
+        ...searchCriteria.pagination,
+        lastPageNo: pageNo,
+        hasMoreData
+      };
+
+      newState.searchCriteria = {
+        ...searchCriteria,
+        searchResults,
+        pagination
+      };
 
       console.log(
         `loadMoreContacts: ${searchText} :${searchText ===
@@ -142,13 +144,51 @@ class ContactsContainer extends Component {
       );
     } else {
       newState.contacts = [...this.state.contacts, ...data];
+      const hasMoreData = newState.contacts.length < totalRecords;
+
+      newState.pagination = {
+        ...this.state.pagination,
+        lastPageNo: pageNo,
+        hasMoreData
+      };
     }
 
+    newState.isLoading = false;
+
+    return newState;
+  }
+
+  async loadMoreContacts() {
+    console.log(`loadMoreContacts: start`);
+
+    // mark: isLoading
+    await this.setStateAsync({
+      ...this.state,
+      isLoading: true,
+      pagination: {
+        ...this.state.pagination
+      }
+    });
+
+    // QUERY:
+    const query = this.getQuery();
+    console.log(`QUERY: `, query);
+    const [err, contactsResp] = await getAll(query);
+    console.log(`RESP: `, contactsResp);
+    const newState = this.getNewState(contactsResp);
+
     await this.setStateAsync({ ...this.state, ...newState });
-    console.log(`loadMoreContacts: ${nextPageNo}: newData: `, data);
     console.log(
-      `loadMoreContacts: ${nextPageNo}: allData: `,
+      `loadMoreContacts: ${contactsResp.pageNo}: newData: `,
+      contactsResp.data
+    );
+    console.log(
+      `loadMoreContacts: ${contactsResp.pageNo}: allContacts: `,
       this.state.contacts
+    );
+    console.log(
+      `loadMoreContacts: ${contactsResp.pageNo}: allSearchResults: `,
+      this.state.searchCriteria.searchResults
     );
   }
 
@@ -163,8 +203,10 @@ class ContactsContainer extends Component {
   registerInifinteScroll() {
     infiniteScroll(() => {
       console.log("infiniteScroll:");
-      const { isLoading, reachedMax } = this.state.pagination;
-      if (!isLoading && !reachedMax) {
+      const { isLoading } = this.state;
+      const { hasMoreData } = this.getPagination();
+      if (!isLoading && hasMoreData) {
+        console.log("infiniteScroll:", { isLoading, hasMoreData });
         this.loadMoreContacts();
       }
     });
@@ -226,17 +268,30 @@ class ContactsContainer extends Component {
 
   async handleSearch(searchText) {
     console.log("handleSearch", searchText);
-    const searchCriteria = { ...this.state.searchCriteria, searchText };
+
+    // update: searchText & reset: searchCriteria
+    const searchCriteria = {
+      ...this.state.searchCriteria,
+      searchText,
+      searchResults: [],
+      pagination: { ...DEFAULT_PAGINATON }
+    };
     await this.setStateAsync({ ...this.state, searchCriteria });
     this.loadMoreContacts();
   }
 
   render() {
-    const { contacts, searchCriteria, showCreateForm, pagination } = this.state;
+    const {
+      contacts,
+      searchCriteria,
+      showCreateForm,
+      pagination,
+      isLoading
+    } = this.state;
 
     const { searchText, searchResults } = searchCriteria;
     const displayContacts = searchText ? searchResults : contacts; // if:searchText available, showOnly searchResults
-    const { isLoading } = pagination;
+    const { hasMoreData } = this.getPagination();
 
     return (
       <div className="app-m-h-70">
@@ -271,6 +326,9 @@ class ContactsContainer extends Component {
         </div>
 
         {isLoading && <p className="text-center text-gray-500"> Loading... </p>}
+        {!hasMoreData && (
+          <p className="text-center text-gray-500"> No more records </p>
+        )}
       </div>
     );
   }

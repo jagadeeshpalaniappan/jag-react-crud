@@ -33,9 +33,7 @@ const search = async (...args) =>
   hp(crudTemplateLocal.search(contacts, ...args));
 
 const getContantsHelper = ({ searchText }) => {
-
-  console.log(`getContantsHelper:contacts: ${searchText}`, contacts);
-
+  
   let searchResults = contacts;
   if (searchText) {
     searchResults = crudTemplateLocal.search(contacts, searchText);
@@ -49,8 +47,10 @@ const getContantsHelper = ({ searchText }) => {
 // getAllWithPagination
 const getAll = async query => {
   const { searchText, pagination } = query;
-  const pageNo = (query && query.pageNo) || 1;
-  const pageSize = (query && query.pageSize) || 10;
+  const pageNo = (pagination && pagination.pageNo) || 1;
+  const pageSize = (pagination && pagination.pageSize) || 10;
+
+  console.log('getAll:contacts:', {pageNo, pageSize});
 
   const startIdx = (pageNo - 1) * pageSize;
   const endIdx = startIdx + pageSize;
@@ -67,7 +67,7 @@ const getAll = async query => {
     data: pagedContacts
   };
 
-  await wait(10000);
+  await wait(5000);
 
   return [null, contactsResp];
 };
