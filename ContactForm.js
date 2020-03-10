@@ -42,11 +42,11 @@ class ContactForm extends Component {
     console.log("Contact: render", this.state);
 
     return (
-      <div class="bg-white rounded shadow-md mb-6 overflow-hidden">
+      <div className="bg-white rounded shadow-md mb-6 overflow-hidden">
         <div className="px-6 py-4">
           <form id={`form-${id}`} onSubmit={this.handleSubmit} noValidate>
-            <div class="flex flex-wrap -mx-3 mb-6">
-              <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+            <div className="flex flex-wrap -mx-3 mb-6">
+              <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                 <FormInput
                   id={`firstName-${id}`}
                   label="First Name"
@@ -54,7 +54,7 @@ class ContactForm extends Component {
                   onTextChange={val => this.onContactChange("firstName", val)}
                 />
               </div>
-              <div class="w-full md:w-1/2 px-3">
+              <div className="w-full md:w-1/2 px-3">
                 <FormInput
                   id={`lastName-${id}`}
                   label="Last Name"
@@ -64,8 +64,8 @@ class ContactForm extends Component {
               </div>
             </div>
 
-            <div class="flex flex-wrap -mx-3 mb-6">
-              <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+            <div className="flex flex-wrap -mx-3 mb-6">
+              <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                 <FormInput
                   id={`email-${id}`}
                   label="Email"
@@ -73,7 +73,7 @@ class ContactForm extends Component {
                   onTextChange={val => this.onContactChange("email", val)}
                 />
               </div>
-              <div class="w-full md:w-1/2 px-3">
+              <div className="w-full md:w-1/2 px-3">
                 <FormInput
                   id={`mobile-${id}`}
                   label="Mobile"

@@ -313,7 +313,7 @@ class ContactsContainer extends Component {
 
     return (
       <div className="app-m-h-70">
-        <div class="flex mb-5">
+        <div className="flex mb-5">
           <Button
             text="Create"
             icon={<MdAdd />}
@@ -329,7 +329,7 @@ class ContactsContainer extends Component {
           />
         )}
 
-        <div class="mb-5">
+        <div className="mb-5">
           <ContactSearch onSearch={this.handleSearch} />
         </div>
         <div>

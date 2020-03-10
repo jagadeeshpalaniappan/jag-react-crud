@@ -9,14 +9,14 @@ const Contact = ({ contact, editContact, deleteContact }) => {
   const { firstName, lastName, mobile, email, notes } = contact;
 
   return (
-    <div class="bg-white rounded shadow-md mb-6 overflow-hidden">
+    <div className="bg-white rounded shadow-md mb-6 overflow-hidden">
       <div className="px-6 py-4">
-        <div class="flex">
+        <div className="flex">
           <div className="flex-grow mb-2 text-teal-500 text-xl">
             {firstName} {lastName}
           </div>
 
-          <div class="flex-grow-0 text-gray-800 ml-2">
+          <div className="flex-grow-0 text-gray-800 ml-2">
             <IconButton
               onClick={editContact}
               icon={<MdEdit />}
